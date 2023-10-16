@@ -1,0 +1,9 @@
+create database customer_management;
+use customer_management;
+CREATE TABLE customers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    email VARCHAR(255),
+    address VARCHAR(255)
+);
+select * from customers;
