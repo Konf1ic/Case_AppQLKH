@@ -29,30 +29,41 @@ public class CustomerServlet extends HttpServlet {
         if (action == null) {
             action = "";
         }
-        switch (action) {
-            case "create":
-                createCustomer(request, response);
-                break;
-            case "edit":
-                updateCustomer(request, response);
-                break;
-            case "delete":
-                deleteCustomer(request, response);
-                break;
-            default:
-                break;
+        try {
+
+            switch (action) {
+                case "create":
+                    createCustomer(request, response);
+                    break;
+                case "edit":
+                    updateCustomer(request, response);
+                    break;
+                case "delete":
+                    deleteCustomer(request, response);
+                    break;
+                default:
+                    break;
+            }
+        }catch (SQLException | ClassNotFoundException e){
+            throw  new ServletException();
         }
     }
 
     // Phương thức xóa customer dựa theo id.
-    private void deleteCustomer(HttpServletRequest request, HttpServletResponse response) {
+    private void deleteCustomer(HttpServletRequest request, HttpServletResponse response) throws SQLException, ClassNotFoundException {
         int id = Integer.parseInt(request.getParameter("id"));
         Customer customer = this.customerService.findById(id);
         RequestDispatcher dispatcher;
         if (customer == null) {
             dispatcher = request.getRequestDispatcher("customer/error-404.jsp");
         } else {
-            this.customerService.remove(id);
+            try {
+                this.customerService.remove(id);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
             try {
                 response.sendRedirect("customers");
             } catch (IOException e) {
@@ -63,30 +74,35 @@ public class CustomerServlet extends HttpServlet {
 
 
     // Phương thức sửa customer.
-    private void updateCustomer(HttpServletRequest request, HttpServletResponse response) {
+    private void updateCustomer(HttpServletRequest request, HttpServletResponse response) throws SQLException, ClassNotFoundException {
         int id = Integer.parseInt(request.getParameter("id"));
         String name = request.getParameter("name");
         String email = request.getParameter("email");
         String address = request.getParameter("address");
         Customer customer = this.customerService.findById(id);
-        RequestDispatcher dispatcher;
+        RequestDispatcher dispatcher = null;
         if (customer == null) {
             dispatcher = request.getRequestDispatcher("customer/error-404.jsp");
         } else {
             customer.setName(name);
             customer.setEmail(email);
             customer.setAddress(address);
-            this.customerService.update(id, customer);
+            try {
+                this.customerService.update(id, customer);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
             request.setAttribute("customer", customer);
             request.setAttribute("message", "Customer information was updated");
-            dispatcher = request.getRequestDispatcher("customer/edit.jsp");
-        }
-        try {
-            dispatcher.forward(request, response);
-        } catch (ServletException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            try {
+                request.getRequestDispatcher("customer/edit.jsp").forward(request,response);
+            } catch (ServletException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -147,7 +163,8 @@ public class CustomerServlet extends HttpServlet {
 
 
     // Phương thức trả về trang view.jsp hiển thị thông tin của customer.
-    private void viewCustomer(HttpServletRequest request, HttpServletResponse response) {
+    private void viewCustomer(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, ClassNotFoundException {
         int id = Integer.parseInt(request.getParameter("id"));
         Customer customer = this.customerService.findById(id);
         RequestDispatcher dispatcher;
@@ -167,7 +184,8 @@ public class CustomerServlet extends HttpServlet {
     }
 
     // Phương thức trả về trang delete.jsp để hiển thị customer để xóa.
-    private void showDeleteForm(HttpServletRequest request, HttpServletResponse response) {
+    private void showDeleteForm(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, ClassNotFoundException {
         int id = Integer.parseInt(request.getParameter("id"));
         Customer customer = this.customerService.findById(id);
         RequestDispatcher dispatcher;
@@ -188,7 +206,8 @@ public class CustomerServlet extends HttpServlet {
 
 
     // Phương thức trả về trang edit.jsp để hiển thị customer để sửa.
-    private void showEditForm(HttpServletRequest request, HttpServletResponse response) {
+    private void showEditForm(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, ClassNotFoundException {
         int id = Integer.parseInt(request.getParameter("id"));
         Customer customer = this.customerService.findById(id);
         RequestDispatcher dispatcher;
@@ -222,7 +241,8 @@ public class CustomerServlet extends HttpServlet {
 
 
     // Phương thức trả về list.jsp để hiển thị toàn bộ customer.
-    private void listCustomers(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException, ClassNotFoundException {
+    private void listCustomers(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException, SQLException, ClassNotFoundException {
         List<Customer> customers = this.customerService.findAll();
         request.setAttribute("customers", customers);
         request.getRequestDispatcher("customer/list.jsp").forward(request,response);

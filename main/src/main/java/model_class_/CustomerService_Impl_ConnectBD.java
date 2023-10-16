@@ -35,10 +35,10 @@ public class CustomerService_Impl_ConnectBD implements CustomerService{
 
     @Override
     public void save(Customer customer) {
-        String sql = "INSERT INTO customers (name, email, address) VALUES (?, ?, ?)";
+        String query = "INSERT INTO customers (name, email, address) VALUES (?, ?, ?)";
 
         try (Connection connection = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setString(1, customer.getName());
             preparedStatement.setString(2, customer.getEmail());
@@ -51,17 +51,40 @@ public class CustomerService_Impl_ConnectBD implements CustomerService{
     }
 
     @Override
-    public Customer findById(int id) {
-        return null;
+    public Customer findById(int id) throws SQLException, ClassNotFoundException {
+        Customer customer = new Customer();
+        Connection connection = connection();
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM customers where id = '"+ id +"'");
+        while (resultSet.next()) {
+            String name = resultSet.getString("name");
+            String email = resultSet.getString("email");
+            String address = resultSet.getString("address");
+            customer = new Customer(id, name, email, address);
+        }
+        return customer;
     }
 
     @Override
-    public void update(int id, Customer customer) {
+    public void update(int id, Customer customer) throws SQLException, ClassNotFoundException {
+        List<Customer> customers = new ArrayList<>();
+        String query = "update customers set name = ?, email = ?, address=? where id = ?";
+        PreparedStatement preparedStatement = connection().prepareStatement(query);
+        preparedStatement.setString(1,customer.getName());
+        preparedStatement.setString(2,customer.getEmail());
+        preparedStatement.setString(3,customer.getAddress());
+        preparedStatement.setInt(4,id);
 
+        preparedStatement.executeUpdate();
     }
 
     @Override
-    public void remove(int id) {
+    public void remove(int id) throws SQLException, ClassNotFoundException {
+    List<Customer> customers = new ArrayList<>();
+    String query = "Delete from customers where id = ?";
+    PreparedStatement preparedStatement = connection().prepareStatement(query);
+    preparedStatement.setInt(1,id);
 
+    preparedStatement.executeUpdate();
     }
 }

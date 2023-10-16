@@ -8,9 +8,9 @@ public interface CustomerService {
 
     void save(Customer customer);
 
-    Customer findById(int id);
+    Customer findById(int id) throws SQLException, ClassNotFoundException;
 
-    void update(int id, Customer customer);
+    void update(int id, Customer customer) throws SQLException, ClassNotFoundException;
 
-    void remove(int id);
+    void remove(int id) throws SQLException, ClassNotFoundException;
 }
